@@ -28,7 +28,7 @@ export const shaderCode = `
 
   fn isPixelInLines(pixelY: f32, lines: array<vec4f, 5>) -> bool {
     for (var i = 0u; i < 5u; i++) {
-      if (pixelY >= lines[i].x && pixelY <= lines[i].y) {
+      if ((pixelY >= lines[i].x && pixelY <= lines[i].y) || (pixelY <= lines[i].x && pixelY >= lines[i].y)) {
         return true;
       }
     }
@@ -58,4 +58,4 @@ export const shaderCode = `
   }
 `;
 
-// TODO: add border around elems
+// ? add border around elems?

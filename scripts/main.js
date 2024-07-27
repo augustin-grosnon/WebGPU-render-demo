@@ -19,10 +19,19 @@ document.addEventListener("DOMContentLoaded", async () => {
     const bindGroupLayout = BindGroupLayout.create(device);
     const vertices = Buffers.createVertexArray();
 
-    const lines = [
-      [0.2, 0.21],
-      [0.5, 0.6],
+    const lineCoords = [
+      [428.0, 440.0],
+      [480.0, 500.0],
+      [544.0, 568.0],
+      [620.0, 662.0],
+      [714.0, 770.0],
     ];
+
+    const lines = lineCoords.map(
+      line => line.map(
+        coord => -((coord / 960.0) * 2.0 - 1.0)
+      )
+    ); // * setup values for webgpu render
 
     // ? should we setup the variables directly in the Renderer class instead of passing it as parameters?
     const renderer = new Renderer({
