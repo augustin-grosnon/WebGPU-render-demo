@@ -1,4 +1,4 @@
-import { shaderCode } from './shaders/shaderModule.js';
+import { shaderCode } from './shaderModule.js';
 
 export class Renderer {
   constructor({
