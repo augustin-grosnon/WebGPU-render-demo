@@ -19,7 +19,7 @@ export const shaderCode = `
   }
 
   fn getCircleGradient(pos: vec2f, center: vec2f, radius: f32) -> vec4f {
-    let topColor = vec4f(254.0 / 255.0, 208.0 / 255.0, 86.0 / 255.0, 1.0);
+    let topColor = vec4f(254.0 / 255.0, 208.0 / 255.0, 46.0 / 255.0, 1.0);
     let bottomColor = vec4f(251.0 / 255.0, 1.0 / 255.0, 249.0 / 255.0, 1.0);
     // TODO: pass colors to fragment shader
     let circleY = (pos.y - center.y + radius) / (2.0 * radius);
