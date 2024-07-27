@@ -9,6 +9,7 @@ export const shaderCode = `
   };
 
   @group(0) @binding(0) var<uniform> circleParams: vec2f;
+  @group(0) @binding(1) var<uniform> lines: array<vec4f, 5>; // ? is there any way to avoid fixed-size arrays?
 
   fn getBackgroundGradient(pos: vec2f) -> vec4f {
     let topColor = vec4f(134.0 / 255.0, 109.0 / 255.0, 255.0 / 255.0, 1.0);
@@ -23,6 +24,15 @@ export const shaderCode = `
     // TODO: pass colors to fragment shader
     let circleY = (pos.y - center.y + radius) / (2.0 * radius);
     return mix(bottomColor, topColor, circleY);
+  }
+
+  fn isPixelInLines(pixelY: f32, lines: array<vec4f, 5>) -> bool {
+    for (var i = 0u; i < 5u; i++) {
+      if (pixelY >= lines[i].x && pixelY <= lines[i].y) {
+        return true;
+      }
+    }
+    return false;
   }
 
   @vertex
@@ -40,12 +50,12 @@ export const shaderCode = `
 
     let dist = length(input.fragPos - circleCenter) - circleRadius;
 
-    // TODO: add empty lines
-    // ? should we pass the empty lines to the shader? (yes, probably)
-    if (dist < 0.0) {
-      return getCircleGradient(input.fragPos, circleCenter, circleRadius);
-    } else {
+    if (dist >= 0.0 || isPixelInLines(input.fragPos.y, lines)) {
       return getBackgroundGradient(input.fragPos);
+    } else {
+      return getCircleGradient(input.fragPos, circleCenter, circleRadius);
     }
   }
 `;
+
+// TODO: add border around elems

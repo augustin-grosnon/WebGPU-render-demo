@@ -19,13 +19,19 @@ document.addEventListener("DOMContentLoaded", async () => {
     const bindGroupLayout = BindGroupLayout.create(device);
     const vertices = Buffers.createVertexArray();
 
+    const lines = [
+      [0.2, 0.21],
+      [0.5, 0.6],
+    ];
+
     // ? should we setup the variables directly in the Renderer class instead of passing it as parameters?
     const renderer = new Renderer({
       device,
       bindGroups: Buffers.createBindGroups(
         device,
         bindGroupLayout,
-        Buffers.createUniformBuffer(device, [0.75, 0.0])
+        Buffers.createCircleParamsBuffer(device, [0.75, 0.0]), // ? can we send a simple value instead of a vector?
+        Buffers.createLineBuffer(device, lines)
       ),
       vertexBuffer: Buffers.createVertexBuffer(device, vertices),
       vertexCount: vertices.length / 2,
