@@ -1,4 +1,4 @@
-import { cellShaderCode } from './shaders/cellShaderModule.js';
+import { shaderCode } from './shaders/shaderModule.js';
 
 export class Renderer {
   constructor({
@@ -20,11 +20,11 @@ export class Renderer {
   }
 
   createRenderPipeline(device, format, pipelineLayout) {
-    const cellShaderModule = device.createShaderModule({ code: cellShaderCode });
+    const shaderModule = device.createShaderModule({ code: shaderCode });
     return device.createRenderPipeline({
       layout: pipelineLayout,
       vertex: {
-        module: cellShaderModule,
+        module: shaderModule,
         entryPoint: "vertexMain",
         buffers: [{
           arrayStride: 8,
@@ -32,7 +32,7 @@ export class Renderer {
         }],
       },
       fragment: {
-        module: cellShaderModule,
+        module: shaderModule,
         entryPoint: "fragmentMain",
         targets: [{ format }],
       },

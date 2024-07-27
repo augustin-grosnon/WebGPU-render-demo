@@ -1,4 +1,4 @@
-export const cellShaderCode = `
+export const shaderCode = `
   struct VertexInput {
     @location(0) pos: vec2f,
   };
