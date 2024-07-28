@@ -1,12 +1,13 @@
 # WebGPU render demo
 
-This project demonstrates rendering a circle with gradient color and a gradient background using WebGPU. It also supports carving lines in the circle at specific positions on the canvas.
+This project demonstrates rendering a circle with gradient color and a gradient background using WebGPU. It also supports carving lines in the circle at specific positions on the canvas. Several other features are available.
 
 ## Features
 
 - **Circle rendering**: Render a circle with a vertical gradient.
 - **Background gradient**: Render a background with a vertical gradient.
 - **Carving lines**: Carve lines at specific positions in the circle.
+- **Select colors**: Select personalized colors for the render.
 
 ## Technologies
 
@@ -50,6 +51,10 @@ This project demonstrates rendering a circle with gradient color and a gradient 
      ```
 
    Navigate to `http://localhost:8000` in your web browser to see the project in action.
+
+## Usage
+
+- **Colors**: Personalize the render by clicking on the pickers and selecting the appropritae color. You can then update the canvas by clicking on `Update colors`.
 
 ## Notes
 
