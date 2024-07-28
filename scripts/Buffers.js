@@ -49,15 +49,13 @@ export class Buffers {
     return colorBuffer;
   }
 
-  static createBindGroups(device, bindGroupLayout, uniformBuffers) {
-    return [
-      device.createBindGroup({
-        layout: bindGroupLayout,
-        entries: uniformBuffers.map((buffer, index) => ({
-          binding: index,
-          resource: { buffer }
-        }))
-      })
-    ];
+  static createBindGroup(device, layout, uniformBuffers) {
+    return device.createBindGroup({
+      layout,
+      entries: uniformBuffers.map((buffer, index) => ({
+        binding: index,
+        resource: { buffer }
+      }))
+    });
   }
 }
