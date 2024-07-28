@@ -39,14 +39,24 @@ export class Buffers {
     return lineBuffer;
   }
 
-  static createBindGroups(device, bindGroupLayout, circleParamsBuffer, lineBuffer) {
+  static createColorUniformBuffer(device, colors) {
+    const colorArray = new Float32Array(colors.flat());
+    const colorBuffer = device.createBuffer({
+      size: colorArray.byteLength,
+      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+    });
+    device.queue.writeBuffer(colorBuffer, 0, colorArray);
+    return colorBuffer;
+  }
+
+  static createBindGroups(device, bindGroupLayout, uniformBuffers) {
     return [
       device.createBindGroup({
         layout: bindGroupLayout,
-        entries: [
-          { binding: 0, resource: { buffer: circleParamsBuffer } },
-          { binding: 1, resource: { buffer: lineBuffer } }
-        ]
+        entries: uniformBuffers.map((buffer, index) => ({
+          binding: index,
+          resource: { buffer }
+        }))
       })
     ];
   }

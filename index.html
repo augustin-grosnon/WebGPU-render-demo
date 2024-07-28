@@ -8,7 +8,26 @@
     <link href="/assets/favicon.ico" rel="icon" type="image/x-icon">
   </head>
   <body>
-    <canvas width="960" height="960"/>
+    <canvas width="960" height="960"></canvas>
+    <div class="color-picker-container">
+      <div class="color-picker">
+        <label for="bgTopColor">Background top color:</label>
+        <input type="color" id="bgTopColor" value="#866dff">
+      </div>
+      <div class="color-picker">
+        <label for="bgBottomColor">Background bottom color:</label>
+        <input type="color" id="bgBottomColor" value="#000084">
+      </div>
+      <div class="color-picker">
+        <label for="circleTopColor">Circle top color:</label>
+        <input type="color" id="circleTopColor" value="#fed02e">
+      </div>
+      <div class="color-picker">
+        <label for="circleBottomColor">Circle bottom color:</label>
+        <input type="color" id="circleBottomColor" value="#fb01f9">
+      </div>
+      <button id="updateColorsButton">Update colors</button>
+    </div>
     <script type="module" src="scripts/main.js"></script>
   </body>
 </html>

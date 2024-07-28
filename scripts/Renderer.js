@@ -9,12 +9,14 @@ export class Renderer {
     pipelineLayout,
     context,
     format,
+    colorUniformBuffer
   }) {
     this.device = device;
     this.context = context;
     this.bindGroups = bindGroups;
     this.vertexBuffer = vertexBuffer;
     this.vertexCount = vertexCount;
+    this.colorUniformBuffer = colorUniformBuffer;
 
     this.renderPipeline = this.createRenderPipeline(device, format, pipelineLayout);
   }
@@ -61,5 +63,11 @@ export class Renderer {
     pass.end();
 
     this.device.queue.submit([encoder.finish()]);
+  }
+
+  updateColorUniforms(colors) {
+    const colorData = new Float32Array(colors.flat());
+    this.device.queue.writeBuffer(this.colorUniformBuffer, 0, colorData);
+    return this;
   }
 }

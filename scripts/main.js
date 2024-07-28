@@ -33,20 +33,60 @@ document.addEventListener("DOMContentLoaded", async () => {
       )
     ); // * setup values for webgpu render
 
+    const initialColorsValues = [
+      [134.0, 109.0, 255.0, 255.0],
+      [0.0, 0.0, 132.0, 255.0],
+      [254.0, 208.0, 46.0, 255.0],
+      [251.0, 1.0, 249.0, 255.0]
+    ];
+
+    const initialColors = initialColorsValues.map(
+      color => color.map(
+        value => value / 255.0
+      )
+    );
+
+    const colorUniformBuffer = Buffers.createColorUniformBuffer(device, initialColors);
+
     // ? should we setup the variables directly in the Renderer class instead of passing it as parameters?
     const renderer = new Renderer({
       device,
       bindGroups: Buffers.createBindGroups(
         device,
         bindGroupLayout,
-        Buffers.createCircleParamsBuffer(device, [0.75, 0.0]), // ? can we send a simple value instead of a vector?
-        Buffers.createLineBuffer(device, lines)
+        [
+          Buffers.createCircleParamsBuffer(device, [0.75, 0.0]), // ? can we send a simple value instead of a vector?
+          Buffers.createLineBuffer(device, lines),
+          colorUniformBuffer
+        ]
       ),
       vertexBuffer: Buffers.createVertexBuffer(device, vertices),
       vertexCount: vertices.length / 2,
       pipelineLayout: PipelineLayout.create(device, bindGroupLayout),
-      ...CanvasContext.configure(canvas, device)
+      ...CanvasContext.configure(canvas, device),
+      colorUniformBuffer
     });
+
+    const updateColors = () => {
+      renderer
+        .updateColorUniforms([
+          hexToVec4(document.getElementById('bgTopColor').value),
+          hexToVec4(document.getElementById('bgBottomColor').value),
+          hexToVec4(document.getElementById('circleTopColor').value),
+          hexToVec4(document.getElementById('circleBottomColor').value)
+        ])
+        .render();
+    }
+
+    const hexToVec4 = (hex) => {
+      const color = parseInt(hex.slice(1), 16);
+      const r = ((color >> 16) & 255) / 255;
+      const g = ((color >> 8) & 255) / 255;
+      const b = (color & 255) / 255;
+      return [r, g, b, 1.0];
+    }
+
+    document.getElementById('updateColorsButton').addEventListener('click', updateColors);
 
     renderer.render();
 
