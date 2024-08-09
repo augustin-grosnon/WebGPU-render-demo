@@ -20,7 +20,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     const bindGroupLayout = BindGroupLayout.create(device);
     const vertices = Buffers.createVertexArray();
 
-    // ? should we setup the variables directly in the Renderer class instead of passing it as parameters?
     const renderer = new Renderer({
       device,
       bindGroups: Buffers.createBindGroups(

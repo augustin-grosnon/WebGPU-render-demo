@@ -57,13 +57,6 @@ export const shaderCode = `
     return length(max(d, vec2f(0.0, 0.0))) + min(max(d.x, d.y), 0.0);
   }
 
-  fn sdVerticalLine(pos: vec2f, lineStart: f32, lineEnd: f32, circleRadius: f32) -> f32 {
-    let rectCenter = vec2f(0.0, (lineStart + lineEnd) * 0.5);
-    let rectSize = vec2f(circleRadius * 2.0, abs(lineStart - lineEnd));
-    // ! the previous two should be done only one time at start, not everytime
-    return sdRectangle(pos, rectCenter, rectSize);
-  }
-
   @fragment
   fn fragmentMain(input: VertexOutput) -> @location(0) vec4f {
     let circleCenter = vec2f(0.0, 0.0);
@@ -72,8 +65,8 @@ export const shaderCode = `
     var sdf = sdCircle(input.fragPos, circleCenter, circleRadius);
 
     for (var i = 0u; i < 5u; i++) {
-      let lineSdf = sdVerticalLine(input.fragPos, lines[i].x, lines[i].y, circleRadius);
-      sdf = sdSubstract(sdf, lineSdf);
+      let line = lines[i];
+      sdf = sdSubstract(sdf, sdRectangle(input.fragPos, vec2f(line.x, line.y), vec2f(line.z, line.w)));
     }
 
     if (sdf < 0.0) {

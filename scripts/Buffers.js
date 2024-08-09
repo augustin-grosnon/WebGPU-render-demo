@@ -25,12 +25,10 @@ export class Buffers {
     return vertexBuffer;
   }
 
-  static createLineBuffer(device, lines) {
-    const maxLines = 5; // TODO: use global variable or something similar instead of magic number
-    const paddedLines = lines.map(line => [...line, 0.0, 0.0]); // ! we could fit several lines in one variable instead of padding
-    while (paddedLines.length < maxLines)
-      paddedLines.push([0.0, 0.0, 0.0, 0.0]);
-    const lineArray = new Float32Array(paddedLines.flat());
+  static createLineBuffer(device, lines, maxLines) {
+    while (lines.length < maxLines)
+      lines.push([0.0, 0.0, 0.0, 0.0]);
+    const lineArray = new Float32Array(lines.flat());
     const lineBuffer = device.createBuffer({
       size: lineArray.byteLength,
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST

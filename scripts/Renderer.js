@@ -27,11 +27,25 @@ export class Renderer {
       [714.0, 770.0],
     ];
 
-    this.lines = lineCoords.map(
+    this.maxLines = 5;
+    this.circleRadius = 0.75;
+    this.linesPos = lineCoords.map(
       line => line.map(
         coord => -((coord / 960.0) * 2.0 - 1.0)
       )
-    ); // * setup values for webgpu render
+    );
+    return this.setupLineValues(this.linesPos);
+  }
+
+  setupLineValues(lines) {
+    this.lines = lines.map(([start, end]) => {
+      return [
+        0.0,
+        (start + end) * 0.5,
+        this.circleRadius * 2.0,
+        Math.abs(start - end)
+      ];
+    });
 
     return this;
   }
@@ -54,9 +68,9 @@ export class Renderer {
   }
 
   initializeBuffers() {
-    this.lineBuffer = Buffers.createLineBuffer(this.device, this.lines);
+    this.lineBuffer = Buffers.createLineBuffer(this.device, this.lines, this.maxLines);
     this.colorUniformBuffer = Buffers.createColorUniformBuffer(this.device, this.initialColors);
-    this.circleParamsBuffer = Buffers.createCircleParamsBuffer(this.device, [0.75, 0.0]);
+    this.circleParamsBuffer = Buffers.createCircleParamsBuffer(this.device, [this.circleRadius, 0.0]);
     this.bindGroupLayout = BindGroupLayout.create(this.device);
     const vertices = Buffers.createVertexArray();
     this.bindGroup = Buffers.createBindGroup(
@@ -103,7 +117,7 @@ export class Renderer {
       if (this.selectedLineIndex === null)
         return;
       this.handleLineMovement(event.key);
-      const lineBuffer = Buffers.createLineBuffer(this.device, this.lines);
+      const lineBuffer = Buffers.createLineBuffer(this.device, this.lines, this.maxLines);
       this.updateLineBuffer(lineBuffer);
       this.render();
     });
@@ -112,33 +126,34 @@ export class Renderer {
   }
 
   handleLineMovement(key) {
-    const line = this.lines[this.selectedLineIndex];
+    const linePos = this.linesPos[this.selectedLineIndex];
+
     switch (key) {
       case 'ArrowUp':
-        line[0] += 0.01;
-        line[1] += 0.01;
+        linePos[0] += 0.01;
+        linePos[1] += 0.01;
         break;
       case 'ArrowDown':
-        line[0] -= 0.01;
-        line[1] -= 0.01;
+        linePos[0] -= 0.01;
+        linePos[1] -= 0.01;
         break;
       case 'ArrowLeft':
-        line[0] -= 0.01;
-        line[1] += 0.01;
+        linePos[0] -= 0.01;
+        linePos[1] += 0.01;
         break;
       case 'ArrowRight':
-        line[0] += 0.01;
-        line[1] -= 0.01;
+        linePos[0] += 0.01;
+        linePos[1] -= 0.01;
         break;
     }
 
-    return this;
+    return this.setupLineValues(this.linesPos);
   }
 
   getLineIndexFromCoords(y) {
     const threshold = 0.02;
-    for (let i = 0; i < this.lines.length; ++i) {
-      const [start, end] = this.lines[i];
+    for (let i = 0; i < this.linesPos.length; ++i) {
+      const [start, end] = this.linesPos[i];
       const distance = Math.abs(y - (start + end) / 2);
       if (distance < threshold)
         return i;
