@@ -40,7 +40,7 @@ export const shaderCode = `
     return min(d1, d2);
   }
 
-  fn sdSubstract(d1: f32, d2: f32) -> f32 {
+  fn sdSubtract(d1: f32, d2: f32) -> f32 {
     return max(d1, -d2);
   }
 
@@ -54,7 +54,7 @@ export const shaderCode = `
 
   fn sdRectangle(pos: vec2f, center: vec2f, size: vec2f) -> f32 {
     let d = abs(pos - center) - size * 0.5;
-    return length(max(d, vec2f(0.0, 0.0))) + min(max(d.x, d.y), 0.0);
+    return length(max(d, vec2f(0.0, 0.0))) + sdIntersect(sdUnion(d.x, d.y), 0.0);
   }
 
   @fragment
@@ -66,7 +66,7 @@ export const shaderCode = `
 
     for (var i = 0u; i < 5u; i++) {
       let line = lines[i];
-      sdf = sdSubstract(sdf, sdRectangle(input.fragPos, vec2f(line.x, line.y), vec2f(line.z, line.w)));
+      sdf = sdSubtract(sdf, sdRectangle(input.fragPos, vec2f(line.x, line.y), vec2f(line.z, line.w)));
     }
 
     if (sdf < 0.0) {
