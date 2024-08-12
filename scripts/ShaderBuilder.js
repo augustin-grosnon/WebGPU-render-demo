@@ -2,11 +2,13 @@ export class ShaderBuilder {
   constructor() {
     this.shapes = [];
     this.sdfFunctions = new Set();
+    this.operations = new Set();
   }
 
   addShape(shape) {
     this.shapes.push(shape);
     this.sdfFunctions.add(shape.getSDFunction());
+    this.operations.add(shape.operation);
     return this;
   }
 
@@ -36,20 +38,7 @@ export class ShaderBuilder {
       @group(0) @binding(0) var<uniform> colors: ColorUniforms;
 
       ${Array.from(this.sdfFunctions).join('\n')}
-
-      fn sdUnion(d1: f32, d2: f32) -> f32 {
-        return min(d1, d2);
-      }
-
-      fn sdSubtract(d1: f32, d2: f32) -> f32 {
-        return max(d1, -d2);
-      }
-
-      fn sdIntersect(d1: f32, d2: f32) -> f32 {
-        return max(d1, d2);
-      }
-
-      // TODO: add union, subtract and intersect dynamically
+      ${this.generateOperationFunctions()}
 
       fn getBackgroundGradient(pos: vec2f) -> vec4f {
         return mix(
@@ -92,6 +81,31 @@ export class ShaderBuilder {
 
   generateShapeOperations() {
     return this.shapes.map(shape => shape.generateOperationCode()).join('\n');
+  }
+
+  generateOperationFunctions() {
+    let operationFunctions = '';
+
+    if (this.operations.has('sdUnion'))
+      operationFunctions += `
+        fn sdUnion(d1: f32, d2: f32) -> f32 {
+          return min(d1, d2);
+        }
+      `;
+    if (this.operations.has('sdSubtract'))
+      operationFunctions += `
+        fn sdSubtract(d1: f32, d2: f32) -> f32 {
+          return max(d1, -d2);
+        }
+      `;
+    if (this.operations.has('sdIntersect'))
+      operationFunctions += `
+        fn sdIntersect(d1: f32, d2: f32) -> f32 {
+          return max(d1, d2);
+        }
+      `;
+
+    return operationFunctions;
   }
 }
 
