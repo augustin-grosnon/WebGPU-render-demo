@@ -19,8 +19,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         .updateColorUniforms([
           hexToVec4(document.getElementById('bgTopColor').value),
           hexToVec4(document.getElementById('bgBottomColor').value),
-          hexToVec4(document.getElementById('circleTopColor').value),
-          hexToVec4(document.getElementById('circleBottomColor').value)
+          hexToVec4(document.getElementById('shapeTopColor').value),
+          hexToVec4(document.getElementById('shapeBottomColor').value)
         ])
         .render();
     }

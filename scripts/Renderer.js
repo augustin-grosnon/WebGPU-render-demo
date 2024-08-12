@@ -1,4 +1,4 @@
-import { shaderCode } from './shaderModule.js';
+import { ShaderBuilder, Circle, Rectangle } from './ShaderBuilder.js';
 import { CanvasContext } from './CanvasContext.js';
 import { BindGroupLayout } from './BindGroupLayout.js';
 import { PipelineLayout } from './PipelineLayout.js';
@@ -11,6 +11,7 @@ export class Renderer {
 
     this
       .initializeLines()
+      .initializeShaderBuilder()
       .initializeColors()
       .initializeBuffers()
       .initializeCanvasContext(canvas)
@@ -27,7 +28,6 @@ export class Renderer {
       [714.0, 770.0],
     ];
 
-    this.maxLines = 5;
     this.circleRadius = 0.75;
     this.linesPos = lineCoords.map(
       line => line.map(
@@ -50,6 +50,30 @@ export class Renderer {
     return this;
   }
 
+  initializeShaderBuilder() {
+    this.shaderBuilder = new ShaderBuilder();
+
+    this.shaderBuilder
+      .addShape(new Circle([0.0, 0.0], this.circleRadius, 'sdUnion'))
+      .addShapes(
+        this.lines.map(
+          ([xCenter, yCenter, width, height]) => new Rectangle(
+            [xCenter, yCenter],
+            [width, height],
+            'sdSubtract'
+          )
+        )
+      );
+
+    return this;
+  }
+
+  updateShader() {
+    return this
+      .initializeShaderBuilder()
+      .initializeRenderPipeline();
+  }
+
   initializeColors() {
     const initialColorsValues = [
       [134.0, 109.0, 255.0, 255.0],
@@ -68,17 +92,13 @@ export class Renderer {
   }
 
   initializeBuffers() {
-    this.lineBuffer = Buffers.createLineBuffer(this.device, this.lines, this.maxLines);
     this.colorUniformBuffer = Buffers.createColorUniformBuffer(this.device, this.initialColors);
-    this.circleParamsBuffer = Buffers.createCircleParamsBuffer(this.device, [this.circleRadius, 0.0]);
     this.bindGroupLayout = BindGroupLayout.create(this.device);
     const vertices = Buffers.createVertexArray();
     this.bindGroup = Buffers.createBindGroup(
       this.device,
       this.bindGroupLayout,
       [
-        this.circleParamsBuffer,
-        this.lineBuffer,
         this.colorUniformBuffer
       ]
     );
@@ -97,10 +117,11 @@ export class Renderer {
   }
 
   initializeRenderPipeline() {
-    this.renderPipeline = this.createRenderPipeline(
+    this.createRenderPipeline(
       this.device,
       this.format,
-      PipelineLayout.create(this.device, this.bindGroupLayout)
+      PipelineLayout.create(this.device, this.bindGroupLayout),
+      this.device.createShaderModule({ code: this.shaderBuilder.generateShader() })
     );
 
     return this;
@@ -116,10 +137,10 @@ export class Renderer {
     document.addEventListener('keydown', (event) => {
       if (this.selectedLineIndex === null)
         return;
-      this.handleLineMovement(event.key);
-      const lineBuffer = Buffers.createLineBuffer(this.device, this.lines, this.maxLines);
-      this.updateLineBuffer(lineBuffer);
-      this.render();
+      this
+        .handleLineMovement(event.key)
+        .updateShader()
+        .render();
     });
 
     return this;
@@ -161,9 +182,8 @@ export class Renderer {
     return null;
   }
 
-  createRenderPipeline(device, format, pipelineLayout) {
-    const shaderModule = device.createShaderModule({ code: shaderCode });
-    return device.createRenderPipeline({
+  createRenderPipeline(device, format, pipelineLayout, shaderModule) {
+    this.renderPipeline = device.createRenderPipeline({
       layout: pipelineLayout,
       vertex: {
         module: shaderModule,
@@ -179,6 +199,8 @@ export class Renderer {
         targets: [{ format }],
       },
     });
+
+    return this;
   }
 
   beginRenderPass(encoder, context) {
@@ -209,14 +231,5 @@ export class Renderer {
     const colorData = new Float32Array(colors.flat());
     this.device.queue.writeBuffer(this.colorUniformBuffer, 0, colorData);
     return this;
-  }
-
-  updateLineBuffer(lineBuffer) {
-    this.lineBuffer = lineBuffer;
-    this.bindGroup = Buffers.createBindGroup(this.device, this.bindGroupLayout, [
-      this.circleParamsBuffer,
-      lineBuffer,
-      this.colorUniformBuffer
-    ]);
   }
 }
