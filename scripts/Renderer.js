@@ -55,10 +55,11 @@ export class Renderer {
 
     // ? base version
     // this.shaderBuilder
-    //   .addShape(Circle, 'opUnion', [0.0, 0.0], this.circleRadius)
+    //   .addShape(Circle, {id: 'opUnion'}, [], [0.0, 0.0], this.circleRadius)
     //   .addShapes(
     //     Rectangle,
-    //     'opSubtraction',
+    //     {id: 'opSubtraction'},
+    //     [],
     //     this.lines.map(
     //       ([xCenter, yCenter, width, height]) =>
     //       [[xCenter, yCenter], [width, height]]
@@ -67,18 +68,28 @@ export class Renderer {
 
     // ? sus
     this.shaderBuilder
-      .addShape(Ellipse, 'opUnion', [], [0.0, -0.1], [0.6, 1.0])
+      .addShape(Ellipse, {id: 'opUnion'}, [], [0.0, -0.1], [0.6, 1.0])
       .addShape(
         Rectangle,
-        'opSubtraction',
+        {id: 'opSubtraction'},
         [],
         [0.0, -1.0], [1.6, 0.5]
       )
-      .addShape(Circle, 'opUnion', [], [-0.4, -0.7], 0.19)
-      .addShape(Circle, 'opUnion', [], [0.4, -0.7], 0.19)
+      .addShape(
+        Circle,
+        {id: 'opSmoothUnion', params: [0.1]},
+        [],
+        [-0.4, -0.7], 0.19
+      )
+      .addShape(
+        Circle,
+        {id: 'opSmoothUnion', params: [0.1]},
+        [],
+        [0.4, -0.7], 0.19
+      )
       .addShape(
         Ellipse,
-        'opSubtraction',
+        {id: 'opSubtraction'},
         [
           {
             id: 'onion',
@@ -93,13 +104,13 @@ export class Renderer {
       )
       .addShape(
         RoundedRectangle,
-        'opUnion',
+        {id: 'opUnion'},
         [],
         [-0.6, 0.0], [0.2, 0.7], 0.1
       )
       .addShape(
         RoundedRectangle,
-        'opSubtraction',
+        {id: 'opSubtraction'},
         [
           {
             id: 'onion',

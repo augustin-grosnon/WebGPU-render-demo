@@ -32,11 +32,18 @@ export class ShaderBuilder {
   }
 
   applyOperation(sdf, operation) {
-    if (typeof operation !== 'string' || !this.operations.has(operation)) {
+    if (typeof operation !== 'object' || !operation.id || !this.operations.has(operation.id)) {
       console.warn('Unknown or unsupported operation:', operation);
       return '';
     }
-    return `sdf = ${operation}(sdf, ${sdf});\n`;
+
+    const { id, params = [] } = operation;
+
+    let opParams = '${sdf}';
+    if (params)
+      opParams = params.join(', ');
+
+    return `sdf = ${id}(sdf, ${sdf}, ${opParams});\n`;
   }
 
   handleShapeOperation(sdfCode, operation, modifiers) {
@@ -63,9 +70,8 @@ export class ShaderBuilder {
       this.sdfFunctions.add(ShapeClass.getSDFunction());
       this.sdfFunctionNames.add(functionName);
     }
-    if (!this.operations.has(operation))
-      this.operations.add(operation);
-    this.operations.add(operation);
+    if (!this.operations.has(operation.id))
+      this.operations.add(operation.id);
     this.shapeOperationsCode += this.handleShapeOperation(
       ShapeClass.generateSDFCode(...params), operation, modifiers
     );
@@ -89,9 +95,8 @@ export class ShaderBuilder {
       this.sdfFunctions.add(ShapeClass.getSDFunction());
       this.sdfFunctionNames.add(functionName);
     }
-    if (!this.operations.has(operation))
-      this.operations.add(operation);
-    this.operations.add(operation);
+    if (!this.operations.has(operation.id))
+      this.operations.add(operation.id);
     this.shapeOperationsCode += paramsArray.reduce((acc, params) => {
       if (!Array.isArray(params)) {
         console.warn('params should be an array:', params);
@@ -193,6 +198,27 @@ export class ShaderBuilder {
       operationFunctions += `
         fn opXor(d1: f32, d2: f32) -> f32 {
           return max(min(d1,d2),-max(d1,d2));
+        }
+      `;
+    if (this.operations.has('opSmoothUnion'))
+      operationFunctions += `
+        fn opSmoothUnion(d1: f32, d2: f32, k: f32) -> f32 {
+          let h = clamp(0.5 + 0.5 * (d2 - d1) / k, 0.0, 1.0);
+          return mix(d2, d1, h) - k * h * (1.0 - h);
+        }
+      `;
+    if (this.operations.has('opSmoothSubtraction'))
+      operationFunctions += `
+        fn opSmoothSubtraction(d1: f32, d2: f32, k: f32) -> f32 {
+          let h = clamp(0.5 - 0.5 * (d2 + d1) / k, 0.0, 1.0);
+          return mix(d2, -d1, h) + k * h * (1.0 - h);
+        }
+      `;
+    if (this.operations.has('opSmoothIntersection'))
+      operationFunctions += `
+        fn opSmoothIntersection(d1: f32, d2: f32, k: f32) -> f32 {
+          let h = clamp(0.5 - 0.5 * (d2 - d1) / k, 0.0, 1.0);
+          return mix(d2, d1, h) + k * h * (1.0 - h);
         }
       `;
 
