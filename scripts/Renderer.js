@@ -55,10 +55,10 @@ export class Renderer {
 
     // ? base version
     // this.shaderBuilder
-    //   .addShape(Circle, 'sdUnion', [0.0, 0.0], this.circleRadius)
+    //   .addShape(Circle, 'opUnion', [0.0, 0.0], this.circleRadius)
     //   .addShapes(
     //     Rectangle,
-    //     'sdSubtract',
+    //     'opSubtraction',
     //     this.lines.map(
     //       ([xCenter, yCenter, width, height]) =>
     //       [[xCenter, yCenter], [width, height]]
@@ -67,43 +67,43 @@ export class Renderer {
 
     // ? sus
     this.shaderBuilder
-      .addShape(Ellipse, 'sdUnion', [], [0.0, -0.1], [0.6, 1.0])
+      .addShape(Ellipse, 'opUnion', [], [0.0, -0.1], [0.6, 1.0])
       .addShape(
         Rectangle,
-        'sdSubtract',
+        'opSubtraction',
         [],
         [0.0, -1.0], [1.6, 0.5]
       )
-      .addShape(Circle, 'sdUnion', [], [-0.4, -0.7], 0.19)
-      .addShape(Circle, 'sdUnion', [], [0.4, -0.7], 0.19)
+      .addShape(Circle, 'opUnion', [], [-0.4, -0.7], 0.19)
+      .addShape(Circle, 'opUnion', [], [0.4, -0.7], 0.19)
       .addShape(
         Ellipse,
-        'sdSubtract',
+        'opSubtraction',
         [
           {
-          id: 'onion',
-          r: 0.1
+            id: 'onion',
+            thickness: 0.1
           },
           {
             id: 'onion',
-            r: 0.02
+            thickness: 0.02
           }
         ],
         [0.2, 0.6], [0.3, 0.2]
       )
       .addShape(
         RoundedRectangle,
-        'sdUnion',
+        'opUnion',
         [],
         [-0.6, 0.0], [0.2, 0.7], 0.1
       )
       .addShape(
         RoundedRectangle,
-        'sdSubtract',
+        'opSubtraction',
         [
           {
             id: 'onion',
-            r: 0.01
+            thickness: 0.01
           }
         ],
         [-0.6, 0.0], [0.2, 0.7], 0.1

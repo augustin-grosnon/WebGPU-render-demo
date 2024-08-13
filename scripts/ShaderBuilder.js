@@ -6,12 +6,12 @@ export class ShaderBuilder {
     this.shapeOperationsCode = '';
   }
 
-  applyRounding(sdf, r) {
-    return (r !== undefined && r !== null && !isNaN(r)) ? `(${sdf} - ${r})` : sdf;
+  applyRounding(sdf, rad) {
+    return (rad !== undefined && rad !== null && !isNaN(rad)) ? `(${sdf} - ${rad})` : sdf;
   }
 
-  applyAnnularity(sdf, r) {
-    return (r !== undefined && r !== null && !isNaN(r)) ? `(abs(${sdf}) - ${r})` : sdf;
+  applyAnnularity(sdf, thickness) {
+    return (thickness !== undefined && thickness !== null && !isNaN(thickness)) ? `(abs(${sdf}) - ${thickness})` : sdf;
   }
 
   applyModifier(sdf, modifier) {
@@ -22,9 +22,9 @@ export class ShaderBuilder {
 
     switch (modifier.id) {
       case 'round':
-        return this.applyRounding(sdf, modifier.r);
+        return this.applyRounding(sdf, modifier.rad);
       case 'onion':
-        return this.applyAnnularity(sdf, modifier.r);
+        return this.applyAnnularity(sdf, modifier.thickness);
       default:
         console.warn('Unknown modifier ID:', modifier.id);
         return sdf;
@@ -171,22 +171,28 @@ export class ShaderBuilder {
   generateOperationFunctions() {
     let operationFunctions = '';
 
-    if (this.operations.has('sdUnion'))
+    if (this.operations.has('opUnion'))
       operationFunctions += `
-        fn sdUnion(d1: f32, d2: f32) -> f32 {
+        fn opUnion(d1: f32, d2: f32) -> f32 {
           return min(d1, d2);
         }
       `;
-    if (this.operations.has('sdSubtract'))
+    if (this.operations.has('opSubtraction'))
       operationFunctions += `
-        fn sdSubtract(d1: f32, d2: f32) -> f32 {
+        fn opSubtraction(d1: f32, d2: f32) -> f32 {
           return max(d1, -d2);
         }
       `;
-    if (this.operations.has('sdIntersect'))
+    if (this.operations.has('opIntersection'))
       operationFunctions += `
-        fn sdIntersect(d1: f32, d2: f32) -> f32 {
+        fn opIntersection(d1: f32, d2: f32) -> f32 {
           return max(d1, d2);
+        }
+      `;
+    if (this.operations.has('opXor'))
+      operationFunctions += `
+        fn opXor(d1: f32, d2: f32) -> f32 {
+          return max(min(d1,d2),-max(d1,d2));
         }
       `;
 
