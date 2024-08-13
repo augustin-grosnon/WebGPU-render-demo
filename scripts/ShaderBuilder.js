@@ -6,7 +6,28 @@ export class ShaderBuilder {
     this.shapeOperationsCode = '';
   }
 
-  addShape(ShapeClass, operation, ...params) {
+  applyRounding(sdf, rounding) {
+    return (rounding !== 0.0) ? `(${sdf} - ${rounding})` : sdf;
+  }
+
+  applyAnnularity(sdf, annularity) {
+    return (annularity !== 0.0) ? `(abs(${sdf}) - ${annularity})` : sdf;
+  }
+
+  applyOperation(sdf, operation) {
+    return `sdf = ${operation}(sdf, ${sdf});\n`;
+  }
+
+  handleShapeOperation(sdfCode, operation, modifiers) {
+    const { rounding = 0.0, annularity = 0.0 } = modifiers;
+
+    sdfCode = this.applyRounding(sdfCode, rounding);
+    sdfCode = this.applyAnnularity(sdfCode, annularity);
+
+    return this.applyOperation(sdfCode, operation);
+  }
+
+  addShape(ShapeClass, operation, modifiers, ...params) {
     const functionName = ShapeClass.getSDFunctionName();
 
     if (!this.sdfFunctionNames.has(functionName)) {
@@ -16,12 +37,14 @@ export class ShaderBuilder {
     if (!this.operations.has(operation))
       this.operations.add(operation);
     this.operations.add(operation);
-    this.shapeOperationsCode += ShapeClass.generateOperationCode(operation, ...params);
+    this.shapeOperationsCode += this.handleShapeOperation(
+      ShapeClass.generateSDFCode(...params), operation, modifiers
+    );
 
     return this;
   }
 
-  addShapes(ShapeClass, operation, paramsArray) {
+  addShapes(ShapeClass, operation, modifiers, paramsArray) {
     const functionName = ShapeClass.getSDFunctionName();
 
     if (!this.sdfFunctionNames.has(functionName)) {
@@ -32,7 +55,9 @@ export class ShaderBuilder {
       this.operations.add(operation);
     this.operations.add(operation);
     this.shapeOperationsCode += paramsArray.reduce((acc, params) => {
-      return acc + ShapeClass.generateOperationCode(operation, ...params);
+      return acc + this.handleShapeOperation(
+        ShapeClass.generateSDFCode(...params), operation, modifiers
+      );
     }, '');
 
     return this;
@@ -139,8 +164,8 @@ export class Circle {
     return 'sdCircle';
   }
 
-  static generateOperationCode(operation, center, radius) {
-    return `sdf = ${operation}(sdf, sdCircle(input.fragPos, vec2f(${center[0]}, ${center[1]}), ${radius}));\n`;
+  static generateSDFCode(center, radius) {
+    return `sdCircle(input.fragPos, vec2f(${center[0]}, ${center[1]}), ${radius})`;
   }
 }
 
@@ -158,8 +183,8 @@ export class Rectangle {
     return 'sdRectangle';
   }
 
-  static generateOperationCode(operation, center, size) {
-    return `sdf = ${operation}(sdf, sdRectangle(input.fragPos, vec2f(${center[0]}, ${center[1]}), vec2f(${size[0]}, ${size[1]})));\n`;
+  static generateSDFCode(center, size) {
+    return `sdRectangle(input.fragPos, vec2f(${center[0]}, ${center[1]}), vec2f(${size[0]}, ${size[1]}))`;
   }
 }
 
@@ -177,12 +202,12 @@ export class Ellipse {
     return 'sdEllipse';
   }
 
-  static generateOperationCode(operation, center, radii) {
-    return `sdf = ${operation}(sdf, sdEllipse(input.fragPos, vec2f(${center[0]}, ${center[1]}), vec2f(${radii[0]}, ${radii[1]})));\n`;
+  static generateSDFCode(center, radii) {
+    return `sdEllipse(input.fragPos, vec2f(${center[0]}, ${center[1]}), vec2f(${radii[0]}, ${radii[1]}))`;
   }
 }
 
-export class RoundedSquare {
+export class RoundedRectangle { // TODO: remove when rectangle will work correctly
   static getSDFunction() {
     return `
       fn sdRoundedSquare(pos: vec2f, center: vec2f, size: vec2f, radius: f32) -> f32 {
@@ -198,7 +223,7 @@ export class RoundedSquare {
     return 'sdRoundedSquare';
   }
 
-  static generateOperationCode(operation, center, size, radius) {
-    return `sdf = ${operation}(sdf, sdRoundedSquare(input.fragPos, vec2f(${center[0]}, ${center[1]}), vec2f(${size[0]}, ${size[1]}), ${radius}));\n`;
+  static generateSDFCode(center, size, radius) {
+    return `sdRoundedSquare(input.fragPos, vec2f(${center[0]}, ${center[1]}), vec2f(${size[0]}, ${size[1]}), ${radius})`;
   }
 }

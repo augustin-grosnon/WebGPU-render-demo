@@ -1,4 +1,4 @@
-import { ShaderBuilder, Circle, Rectangle, Ellipse, RoundedSquare } from './ShaderBuilder.js';
+import { ShaderBuilder, Circle, Rectangle, Ellipse, RoundedRectangle } from './ShaderBuilder.js';
 import { CanvasContext } from './CanvasContext.js';
 import { BindGroupLayout } from './BindGroupLayout.js';
 import { PipelineLayout } from './PipelineLayout.js';
@@ -67,27 +67,27 @@ export class Renderer {
 
     // ? sus
     this.shaderBuilder
-      .addShape(Ellipse, 'sdUnion', [0.0, -0.1], [0.6, 1.0])
+      .addShape(Ellipse, 'sdUnion', {}, [0.0, -0.1], [0.6, 1.0])
       .addShape(
         Rectangle,
         'sdSubtract',
+        {},
         [0.0, -1.0], [1.6, 0.5]
       )
-      .addShape(Circle, 'sdUnion', [-0.4, -0.7], 0.19)
-      .addShape(Circle, 'sdUnion', [0.4, -0.7], 0.19)
+      .addShape(Circle, 'sdUnion', {}, [-0.4, -0.7], 0.19)
+      .addShape(Circle, 'sdUnion', {}, [0.4, -0.7], 0.19)
       .addShape(
         Ellipse,
         'sdSubtract',
+        {
+          annularity: 0.1
+        },
         [0.2, 0.6], [0.3, 0.2]
       )
       .addShape(
-        Ellipse,
+        RoundedRectangle,
         'sdUnion',
-        [0.21, 0.61], [0.28, 0.18]
-      )
-      .addShape(
-        RoundedSquare,
-        'sdUnion',
+        {},
         [-0.6, 0.0], [0.2, 0.7], 0.1
       );
 
