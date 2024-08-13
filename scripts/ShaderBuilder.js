@@ -6,28 +6,57 @@ export class ShaderBuilder {
     this.shapeOperationsCode = '';
   }
 
-  applyRounding(sdf, rounding) {
-    return (rounding !== 0.0) ? `(${sdf} - ${rounding})` : sdf;
+  applyRounding(sdf, r) {
+    return (r !== undefined && r !== null && !isNaN(r)) ? `(${sdf} - ${r})` : sdf;
   }
 
-  applyAnnularity(sdf, annularity) {
-    return (annularity !== 0.0) ? `(abs(${sdf}) - ${annularity})` : sdf;
+  applyAnnularity(sdf, r) {
+    return (r !== undefined && r !== null && !isNaN(r)) ? `(abs(${sdf}) - ${r})` : sdf;
+  }
+
+  applyModifier(sdf, modifier) {
+    if (!modifier || typeof modifier.id !== 'string') {
+      console.warn('Invalid modifier object:', modifier);
+      return sdf;
+    }
+
+    switch (modifier.id) {
+      case 'round':
+        return this.applyRounding(sdf, modifier.r);
+      case 'onion':
+        return this.applyAnnularity(sdf, modifier.r);
+      default:
+        console.warn('Unknown modifier ID:', modifier.id);
+        return sdf;
+    }
   }
 
   applyOperation(sdf, operation) {
+    if (typeof operation !== 'string' || !this.operations.has(operation)) {
+      console.warn('Unknown or unsupported operation:', operation);
+      return '';
+    }
     return `sdf = ${operation}(sdf, ${sdf});\n`;
   }
 
   handleShapeOperation(sdfCode, operation, modifiers) {
-    const { rounding = 0.0, annularity = 0.0 } = modifiers;
+    if (!Array.isArray(modifiers)) {
+      console.warn('Modifiers should be an array:', modifiers);
+      return this.applyOperation(sdfCode, operation);
+    }
 
-    sdfCode = this.applyRounding(sdfCode, rounding);
-    sdfCode = this.applyAnnularity(sdfCode, annularity);
+    for (const modifier of modifiers)
+      sdfCode = this.applyModifier(sdfCode, modifier);
 
     return this.applyOperation(sdfCode, operation);
   }
 
   addShape(ShapeClass, operation, modifiers, ...params) {
+    if (typeof ShapeClass !== 'function') {
+      console.error('Invalid ShapeClass:', ShapeClass);
+      return this;
+    }
+
     const functionName = ShapeClass.getSDFunctionName();
 
     if (!this.sdfFunctionNames.has(functionName)) {
@@ -45,6 +74,15 @@ export class ShaderBuilder {
   }
 
   addShapes(ShapeClass, operation, modifiers, paramsArray) {
+    if (typeof ShapeClass !== 'function') {
+      console.error('Invalid ShapeClass:', ShapeClass);
+      return this;
+    }
+    if (!Array.isArray(paramsArray)) {
+      console.warn('paramsArray should be an array:', paramsArray);
+      return this;
+    }
+
     const functionName = ShapeClass.getSDFunctionName();
 
     if (!this.sdfFunctionNames.has(functionName)) {
@@ -55,6 +93,11 @@ export class ShaderBuilder {
       this.operations.add(operation);
     this.operations.add(operation);
     this.shapeOperationsCode += paramsArray.reduce((acc, params) => {
+      if (!Array.isArray(params)) {
+        console.warn('params should be an array:', params);
+        return acc;
+      }
+
       return acc + this.handleShapeOperation(
         ShapeClass.generateSDFCode(...params), operation, modifiers
       );
