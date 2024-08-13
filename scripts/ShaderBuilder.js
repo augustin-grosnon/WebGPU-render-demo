@@ -162,3 +162,65 @@ export class Rectangle {
     return `sdf = ${operation}(sdf, sdRectangle(input.fragPos, vec2f(${center[0]}, ${center[1]}), vec2f(${size[0]}, ${size[1]})));\n`;
   }
 }
+
+export class Triangle {
+  static getSDFunction() {
+    return `
+      fn sdTriangle(pos: vec2f, p0: vec2f, p1: vec2f, p2: vec2f) -> f32 {
+        let e0 = length(cross(vec3f(p1 - p0, 0.0), vec3f(pos - p0, 0.0))) / length(p1 - p0);
+        let e1 = length(cross(vec3f(p2 - p1, 0.0), vec3f(pos - p1, 0.0))) / length(p2 - p1);
+        let e2 = length(cross(vec3f(p0 - p2, 0.0), vec3f(pos - p2, 0.0))) / length(p0 - p2);
+
+        return min(min(e0, e1), e2);
+      }
+    `;
+  }
+
+  static getSDFunctionName() {
+    return 'sdTriangle';
+  }
+
+  static generateOperationCode(operation, p0, p1, p2) {
+    return `sdf = ${operation}(sdf, sdTriangle(input.fragPos, vec2f(${p0[0]}, ${p0[1]}), vec2f(${p1[0]}, ${p1[1]}), vec2f(${p2[0]}, ${p2[1]})));\n`;
+  }
+}
+
+export class Ellipse {
+  static getSDFunction() {
+    return `
+      fn sdEllipse(pos: vec2f, center: vec2f, radii: vec2f) -> f32 {
+        let d = abs(pos - center) / radii;
+        return length(max(d, vec2f(0.0, 0.0))) - 1.0;
+      }
+    `;
+  }
+
+  static getSDFunctionName() {
+    return 'sdEllipse';
+  }
+
+  static generateOperationCode(operation, center, radii) {
+    return `sdf = ${operation}(sdf, sdEllipse(input.fragPos, vec2f(${center[0]}, ${center[1]}), vec2f(${radii[0]}, ${radii[1]})));\n`;
+  }
+}
+
+export class RoundedSquare {
+  static getSDFunction() {
+    return `
+      fn sdRoundedSquare(pos: vec2f, center: vec2f, size: vec2f, radius: f32) -> f32 {
+        let d = abs(pos - center) - (size * 0.5 - vec2f(radius, radius));
+        let inside = length(max(d, vec2f(0.0, 0.0)));
+        let outside = length(max(d - vec2f(radius, radius), vec2f(0.0, 0.0)));
+        return min(inside, outside) - radius;
+      }
+    `;
+  }
+
+  static getSDFunctionName() {
+    return 'sdRoundedSquare';
+  }
+
+  static generateOperationCode(operation, center, size, radius) {
+    return `sdf = ${operation}(sdf, sdRoundedSquare(input.fragPos, vec2f(${center[0]}, ${center[1]}), vec2f(${size[0]}, ${size[1]}), ${radius}));\n`;
+  }
+}
