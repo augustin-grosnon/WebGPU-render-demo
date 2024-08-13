@@ -163,28 +163,6 @@ export class Rectangle {
   }
 }
 
-export class Triangle {
-  static getSDFunction() {
-    return `
-      fn sdTriangle(pos: vec2f, p0: vec2f, p1: vec2f, p2: vec2f) -> f32 {
-        let e0 = length(cross(vec3f(p1 - p0, 0.0), vec3f(pos - p0, 0.0))) / length(p1 - p0);
-        let e1 = length(cross(vec3f(p2 - p1, 0.0), vec3f(pos - p1, 0.0))) / length(p2 - p1);
-        let e2 = length(cross(vec3f(p0 - p2, 0.0), vec3f(pos - p2, 0.0))) / length(p0 - p2);
-
-        return min(min(e0, e1), e2);
-      }
-    `;
-  }
-
-  static getSDFunctionName() {
-    return 'sdTriangle';
-  }
-
-  static generateOperationCode(operation, p0, p1, p2) {
-    return `sdf = ${operation}(sdf, sdTriangle(input.fragPos, vec2f(${p0[0]}, ${p0[1]}), vec2f(${p1[0]}, ${p1[1]}), vec2f(${p2[0]}, ${p2[1]})));\n`;
-  }
-}
-
 export class Ellipse {
   static getSDFunction() {
     return `
