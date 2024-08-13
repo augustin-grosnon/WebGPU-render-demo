@@ -54,14 +54,13 @@ export class Renderer {
     this.shaderBuilder = new ShaderBuilder();
 
     this.shaderBuilder
-      .addShape(new Circle([0.0, 0.0], this.circleRadius, 'sdUnion'))
+      .addShape(Circle, 'sdUnion', [0.0, 0.0], this.circleRadius)
       .addShapes(
+        Rectangle,
+        'sdSubtract',
         this.lines.map(
-          ([xCenter, yCenter, width, height]) => new Rectangle(
-            [xCenter, yCenter],
-            [width, height],
-            'sdSubtract'
-          )
+          ([xCenter, yCenter, width, height]) =>
+          [[xCenter, yCenter], [width, height]]
         )
       );
 
@@ -117,14 +116,12 @@ export class Renderer {
   }
 
   initializeRenderPipeline() {
-    this.createRenderPipeline(
+    return this.createRenderPipeline(
       this.device,
       this.format,
       PipelineLayout.create(this.device, this.bindGroupLayout),
       this.device.createShaderModule({ code: this.shaderBuilder.generateShader() })
     );
-
-    return this;
   }
 
   setupEventListeners(canvas) {
@@ -227,7 +224,7 @@ export class Renderer {
     this.device.queue.submit([encoder.finish()]);
   }
 
-  updateColorUniforms(colors) {
+  updateColorUnifors(colors) {
     const colorData = new Float32Array(colors.flat());
     this.device.queue.writeBuffer(this.colorUniformBuffer, 0, colorData);
     return this;

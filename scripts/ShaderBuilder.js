@@ -1,19 +1,40 @@
 export class ShaderBuilder {
   constructor() {
-    this.shapes = [];
     this.sdfFunctions = new Set();
+    this.sdfFunctionNames = new Set();
     this.operations = new Set();
+    this.shapeOperationsCode = '';
   }
 
-  addShape(shape) {
-    this.shapes.push(shape);
-    this.sdfFunctions.add(shape.getSDFunction());
-    this.operations.add(shape.operation);
+  addShape(ShapeClass, operation, ...params) {
+    const functionName = ShapeClass.getSDFunctionName();
+
+    if (!this.sdfFunctionNames.has(functionName)) {
+      this.sdfFunctions.add(ShapeClass.getSDFunction());
+      this.sdfFunctionNames.add(functionName);
+    }
+    if (!this.operations.has(operation))
+      this.operations.add(operation);
+    this.operations.add(operation);
+    this.shapeOperationsCode += ShapeClass.generateOperationCode(operation, ...params);
+
     return this;
   }
 
-  addShapes(shapes) {
-    shapes.forEach(shape => this.addShape(shape));
+  addShapes(ShapeClass, operation, paramsArray) {
+    const functionName = ShapeClass.getSDFunctionName();
+
+    if (!this.sdfFunctionNames.has(functionName)) {
+      this.sdfFunctions.add(ShapeClass.getSDFunction());
+      this.sdfFunctionNames.add(functionName);
+    }
+    if (!this.operations.has(operation))
+      this.operations.add(operation);
+    this.operations.add(operation);
+    this.shapeOperationsCode += paramsArray.reduce((acc, params) => {
+      return acc + ShapeClass.generateOperationCode(operation, ...params);
+    }, '');
+
     return this;
   }
 
@@ -68,7 +89,7 @@ export class ShaderBuilder {
       fn fragmentMain(input: VertexOutput) -> @location(0) vec4f {
         var sdf = 1e10; // ! using large value to be far by default, could be better
 
-        ${this.generateShapeOperations()}
+        ${this.shapeOperationsCode} // ! loop unrolling might cause issues with high shape amount
 
         if (sdf < 0.0) {
           return getShapeGradient(input.fragPos);
@@ -77,10 +98,6 @@ export class ShaderBuilder {
         }
       }
     `;
-  }
-
-  generateShapeOperations() {
-    return this.shapes.map(shape => shape.generateOperationCode()).join('\n');
   }
 
   generateOperationFunctions() {
@@ -109,20 +126,8 @@ export class ShaderBuilder {
   }
 }
 
-class Shape {
-  constructor(operation) {
-    this.operation = operation;
-  }
-}
-
-export class Circle extends Shape {
-  constructor(center, radius, operation) {
-    super(operation);
-    this.center = center;
-    this.radius = radius;
-  }
-
-  getSDFunction() {
+export class Circle {
+  static getSDFunction() {
     return `
       fn sdCircle(pos: vec2f, center: vec2f, radius: f32) -> f32 {
         return length(pos - center) - radius;
@@ -130,19 +135,17 @@ export class Circle extends Shape {
     `;
   }
 
-  generateOperationCode() {
-    return `sdf = ${this.operation}(sdf, sdCircle(input.fragPos, vec2f(${this.center[0]}, ${this.center[1]}), ${this.radius}));`;
+  static getSDFunctionName() {
+    return 'sdCircle';
+  }
+
+  static generateOperationCode(operation, center, radius) {
+    return `sdf = ${operation}(sdf, sdCircle(input.fragPos, vec2f(${center[0]}, ${center[1]}), ${radius}));\n`;
   }
 }
 
-export class Rectangle extends Shape {
-  constructor(center, size, operation) {
-    super(operation);
-    this.center = center;
-    this.size = size;
-  }
-
-  getSDFunction() {
+export class Rectangle {
+  static getSDFunction() {
     return `
       fn sdRectangle(pos: vec2f, center: vec2f, size: vec2f) -> f32 {
         let d = abs(pos - center) - size * 0.5;
@@ -151,7 +154,11 @@ export class Rectangle extends Shape {
     `;
   }
 
-  generateOperationCode() {
-    return `sdf = ${this.operation}(sdf, sdRectangle(input.fragPos, vec2f(${this.center[0]}, ${this.center[1]}), vec2f(${this.size[0]}, ${this.size[1]})));`;
+  static getSDFunctionName() {
+    return 'sdRectangle';
+  }
+
+  static generateOperationCode(operation, center, size) {
+    return `sdf = ${operation}(sdf, sdRectangle(input.fragPos, vec2f(${center[0]}, ${center[1]}), vec2f(${size[0]}, ${size[1]})));\n`;
   }
 }
