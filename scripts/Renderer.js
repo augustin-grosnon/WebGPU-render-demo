@@ -1,4 +1,8 @@
-import { ShaderBuilder, Circle, Rectangle, Ellipse, RoundedRectangle } from './ShaderBuilder.js';
+import { ShaderBuilder } from './ShaderBuilder.js';
+import { Circle } from './shapes/Circle.js'
+import { Rectangle } from './shapes/Rectangle.js'
+import { Ellipse } from './shapes/Ellipse.js'
+import { RoundedRectangle } from './shapes/RoundedRectangle.js'
 import { CanvasContext } from './CanvasContext.js';
 import { BindGroupLayout } from './BindGroupLayout.js';
 import { PipelineLayout } from './PipelineLayout.js';
