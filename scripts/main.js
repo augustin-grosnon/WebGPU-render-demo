@@ -52,7 +52,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     document.getElementById('downloadShaderButton').addEventListener('click', () => {
       const shaderCode = renderer.shaderBuilder.generateShader(true);
-      downloadTextFile('shader.glsl', shaderCode);
+      downloadTextFile('shader.wgsl', shaderCode);
     });
 
     renderer.render();
