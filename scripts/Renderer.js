@@ -71,7 +71,7 @@ export class Renderer {
     //     )
     //   )
 
-    // ? sus
+    // ? demo - sus
     this.shaderBuilder
       .addShape( // * body
         Ellipse,
