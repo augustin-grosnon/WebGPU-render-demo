@@ -59,10 +59,11 @@ export class Renderer {
 
     // ? base version
     // this.shaderBuilder
-    //   .addShape(Circle, {id: 'opUnion'}, [], [0.0, 0.0], this.circleRadius)
+    //   .addShape(Circle, {id: 'opUnion'}, [], [], [0.0, 0.0], this.circleRadius)
     //   .addShapes(
     //     Rectangle,
     //     {id: 'opSubtraction'},
+    //     [],
     //     [],
     //     this.lines.map(
     //       ([xCenter, yCenter, width, height]) =>
@@ -72,20 +73,21 @@ export class Renderer {
 
     // ? sus
     this.shaderBuilder
-      .addShape(
+      .addShape( // * body
         Ellipse,
         {id: 'opUnion'},
         [],
         [],
-        [0.0, -0.1], [0.6, 1.0])
-      .addShape(
+        [0.0, -0.1], [0.6, 1.0]
+      )
+      .addShape( // * bottom cut
         Rectangle,
         {id: 'opSubtraction'},
         [],
         [],
         [0.0, -1.0], [1.6, 0.5]
       )
-      .addShape(
+      .addShape( // * feets
         Circle,
         {id: 'opSmoothUnion', params: [0.1]},
         [
@@ -94,7 +96,16 @@ export class Renderer {
         [],
         [0.4, -0.7], 0.19
       )
-      .addShape(
+      .addShape( // * background
+        Circle,
+        {id: 'opUnion'},
+        [
+          { id: 'repeat', spacing: { x: 0.01, y: 0.01} }
+        ],
+        [],
+        [0.0, 0.0], 0.001
+      )
+      .addShape( // * visor
         Ellipse,
         {id: 'opSubtraction'},
         [
@@ -119,14 +130,14 @@ export class Renderer {
         ],
         [0.2, 0.6], [0.3, 0.2]
       )
-      .addShape(
+      .addShape( // * backpack
         RoundedRectangle,
         {id: 'opUnion'},
         [],
         [],
         [-0.6, 0.0], [0.2, 0.7], 0.1
       )
-      .addShape(
+      .addShape( // * backpack outline
         RoundedRectangle,
         {id: 'opSubtraction'},
         [],
@@ -206,14 +217,15 @@ export class Renderer {
       this.selectedLineIndex = this.getLineIndexFromCoords(y);
     });
 
-    document.addEventListener('keydown', (event) => {
-      if (this.selectedLineIndex === null)
-        return;
-      this
-        .handleLineMovement(event.key)
-        .updateShader()
-        .render();
-    });
+    // ? line moving
+    // document.addEventListener('keydown', (event) => {
+    //   if (this.selectedLineIndex === null)
+    //     return;
+    //   this
+    //     .handleLineMovement(event.key)
+    //     .updateShader()
+    //     .render();
+    // });
 
     return this;
   }

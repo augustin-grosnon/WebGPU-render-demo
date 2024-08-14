@@ -53,6 +53,14 @@ export class ShaderBuilder {
     return `vec2f(${pos}.x, abs(${pos}.y))`;
   }
 
+  applyRepetition(pos, spacing) {
+    return `(${pos} - vec2f(${spacing.x}, ${spacing.y}) * round(${pos} / vec2f(${spacing.x}, ${spacing.y})))`;
+  }
+
+  applyLimitedRepetition(pos, spacing, limits) {
+    return `(${pos} - vec2f(${spacing.x}, ${spacing.y}) * clamp(round(${pos} / vec2f(${spacing.x}, ${spacing.y})), vec2f(-${limits.x}, -${limits.y}), vec2f(${limits.x}, ${limits.y})))`;
+  }
+
   applyPositionModifiers(pos, modifiers) {
     if (!Array.isArray(modifiers)) {
       console.warn('Modifiers should be an array:', modifiers);
@@ -78,6 +86,12 @@ export class ShaderBuilder {
           break;
         case 'symY':
           pos = this.applySymY(pos);
+          break;
+        case 'repeat':
+          pos = this.applyRepetition(pos, modifier.spacing);
+          break;
+        case 'limitedRepeat':
+          pos = this.applyLimitedRepetition(pos, modifier.spacing, modifier.limits);
           break;
         default:
           console.warn('Unknown position modifier ID:', modifier.id);
