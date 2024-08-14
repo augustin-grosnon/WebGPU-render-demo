@@ -12,6 +12,6 @@ export class Circle {
   }
 
   static generateSDFCode(center, radius) {
-    return `sdCircle(input.fragPos, vec2f(${center[0]}, ${center[1]}), ${radius})`;
+    return `vec2f(${center[0]}, ${center[1]}), ${radius}`;
   }
 }

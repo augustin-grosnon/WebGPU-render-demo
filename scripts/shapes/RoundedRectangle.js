@@ -15,6 +15,6 @@ export class RoundedRectangle { // TODO: remove when rectangle will work correct
   }
 
   static generateSDFCode(center, size, radius) {
-    return `sdRoundedSquare(input.fragPos, vec2f(${center[0]}, ${center[1]}), vec2f(${size[0]}, ${size[1]}), ${radius})`;
+    return `vec2f(${center[0]}, ${center[1]}), vec2f(${size[0]}, ${size[1]}), ${radius}`;
   }
 }

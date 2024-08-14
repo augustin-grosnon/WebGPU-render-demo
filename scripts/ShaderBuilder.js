@@ -31,6 +31,45 @@ export class ShaderBuilder {
     }
   }
 
+  applyTranslation(pos, translation) {
+    return `(${pos} - vec2f(${translation[0]}, ${translation[1]}))`;
+  }
+
+  applyRotation(pos, angle) {
+    const cosA = `cos(${angle})`;
+    const sinA = `sin(${angle})`;
+    return `vec2f(${cosA} * ${pos}.x - ${sinA} * ${pos}.y, ${sinA} * ${pos}.x + ${cosA} * ${pos}.y)`;
+  }
+
+  applyScaling(pos, scale) {
+    return `${pos} * ${scale}`; // TODO: fix the inversed scale
+  }
+
+  applyPositionModifiers(pos, modifiers) {
+    if (!Array.isArray(modifiers)) {
+      console.warn('Modifiers should be an array:', modifiers);
+      return pos;
+    }
+
+    for (const modifier of modifiers) {
+      switch (modifier.id) {
+        case 'translate':
+          pos = this.applyTranslation(pos, modifier.translation);
+          break;
+        case 'rotate':
+          pos = this.applyRotation(pos, modifier.angle);
+          break;
+        case 'scale':
+          pos = this.applyScaling(pos, modifier.scale);
+          break;
+        default:
+          console.warn('Unknown position modifier ID:', modifier.id);
+          break;
+      }
+    }
+    return pos;
+  }
+
   applyOperation(sdf, operation) {
     if (typeof operation !== 'object' || !operation.id || !this.operations.has(operation.id)) {
       console.warn('Unknown or unsupported operation:', operation);
@@ -48,7 +87,7 @@ export class ShaderBuilder {
 
   handleShapeOperation(sdfCode, operation, modifiers) {
     if (!Array.isArray(modifiers)) {
-      console.warn('Modifiers should be an array:', modifiers);
+      console.warn('SDF modifiers should be an array:', modifiers);
       return this.applyOperation(sdfCode, operation);
     }
 
@@ -58,7 +97,7 @@ export class ShaderBuilder {
     return this.applyOperation(sdfCode, operation);
   }
 
-  addShape(ShapeClass, operation, modifiers, ...params) {
+  addShape(ShapeClass, operation, shapeModifiers, sdfModifiers, ...params) {
     if (typeof ShapeClass !== 'function') {
       console.error('Invalid ShapeClass:', ShapeClass);
       return this;
@@ -72,14 +111,18 @@ export class ShaderBuilder {
     }
     if (!this.operations.has(operation.id))
       this.operations.add(operation.id);
+
+    const posCode = this.applyPositionModifiers('input.fragPos', shapeModifiers);
+    const sdfCode = `${ShapeClass.getSDFunctionName()}(${posCode}, ${ShapeClass.generateSDFCode(...params)})`;
+
     this.shapeOperationsCode += this.handleShapeOperation(
-      ShapeClass.generateSDFCode(...params), operation, modifiers
+      sdfCode, operation, sdfModifiers
     );
 
     return this;
   }
 
-  addShapes(ShapeClass, operation, modifiers, paramsArray) {
+  addShapes(ShapeClass, operation, shapeModifiers, sdfModifiers, paramsArray) {
     if (typeof ShapeClass !== 'function') {
       console.error('Invalid ShapeClass:', ShapeClass);
       return this;
@@ -104,7 +147,7 @@ export class ShaderBuilder {
       }
 
       return acc + this.handleShapeOperation(
-        ShapeClass.generateSDFCode(...params), operation, modifiers
+        ShapeClass.generateSDFCode(...params), operation, shapeModifiers, sdfModifiers
       );
     }, '');
 

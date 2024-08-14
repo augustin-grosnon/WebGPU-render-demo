@@ -72,10 +72,11 @@ export class Renderer {
 
     // ? sus
     this.shaderBuilder
-      .addShape(Ellipse, {id: 'opUnion'}, [], [0.0, -0.1], [0.6, 1.0])
+      .addShape(Ellipse, {id: 'opUnion'}, [], [], [0.0, -0.1], [0.6, 1.0])
       .addShape(
         Rectangle,
         {id: 'opSubtraction'},
+        [],
         [],
         [0.0, -1.0], [1.6, 0.5]
       )
@@ -83,17 +84,29 @@ export class Renderer {
         Circle,
         {id: 'opSmoothUnion', params: [0.1]},
         [],
+        [],
         [-0.4, -0.7], 0.19
       )
       .addShape(
         Circle,
         {id: 'opSmoothUnion', params: [0.1]},
         [],
+        [],
         [0.4, -0.7], 0.19
       )
       .addShape(
         Ellipse,
         {id: 'opSubtraction'},
+        [
+          {
+            id: 'translate',
+            translation: [-0.2, 0.1]
+          },
+          {
+            id: 'rotate',
+            angle: Math.PI / 6
+          },
+        ],
         [
           {
             id: 'onion',
@@ -110,11 +123,13 @@ export class Renderer {
         RoundedRectangle,
         {id: 'opUnion'},
         [],
+        [],
         [-0.6, 0.0], [0.2, 0.7], 0.1
       )
       .addShape(
         RoundedRectangle,
         {id: 'opSubtraction'},
+        [],
         [
           {
             id: 'onion',

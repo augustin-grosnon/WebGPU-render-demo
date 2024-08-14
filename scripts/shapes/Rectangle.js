@@ -13,6 +13,6 @@ export class Rectangle {
   }
 
   static generateSDFCode(center, size) {
-    return `sdRectangle(input.fragPos, vec2f(${center[0]}, ${center[1]}), vec2f(${size[0]}, ${size[1]}))`;
+    return `vec2f(${center[0]}, ${center[1]}), vec2f(${size[0]}, ${size[1]})`;
   }
 }

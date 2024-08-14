@@ -13,6 +13,6 @@ export class Ellipse {
   }
 
   static generateSDFCode(center, radii) {
-    return `sdEllipse(input.fragPos, vec2f(${center[0]}, ${center[1]}), vec2f(${radii[0]}, ${radii[1]}))`;
+    return `vec2f(${center[0]}, ${center[1]}), vec2f(${radii[0]}, ${radii[1]})`;
   }
 }
