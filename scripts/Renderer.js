@@ -88,14 +88,9 @@ export class Renderer {
       .addShape(
         Circle,
         {id: 'opSmoothUnion', params: [0.1]},
-        [],
-        [],
-        [-0.4, -0.7], 0.19
-      )
-      .addShape(
-        Circle,
-        {id: 'opSmoothUnion', params: [0.1]},
-        [],
+        [
+          { id: 'symX' },
+        ],
         [],
         [0.4, -0.7], 0.19
       )

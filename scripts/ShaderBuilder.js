@@ -45,6 +45,14 @@ export class ShaderBuilder {
     return `${pos} / ${scale}`;
   }
 
+  applySymX(pos) {
+    return `vec2f(abs(${pos}.x), ${pos}.y)`;
+  }
+
+  applySymY(pos) {
+    return `vec2f(${pos}.x, abs(${pos}.y))`;
+  }
+
   applyPositionModifiers(pos, modifiers) {
     if (!Array.isArray(modifiers)) {
       console.warn('Modifiers should be an array:', modifiers);
@@ -64,6 +72,12 @@ export class ShaderBuilder {
         case 'scale':
           pos = this.applyScaling(pos, modifier.scale);
           combinedScale *= modifier.scale;
+          break;
+        case 'symX':
+          pos = this.applySymX(pos);
+          break;
+        case 'symY':
+          pos = this.applySymY(pos);
           break;
         default:
           console.warn('Unknown position modifier ID:', modifier.id);
