@@ -42,7 +42,7 @@ export class ShaderBuilder {
   }
 
   applyScaling(pos, scale) {
-    return `${pos} * ${scale}`; // TODO: fix the inversed scale
+    return `${pos} / ${scale}`;
   }
 
   applyPositionModifiers(pos, modifiers) {
@@ -50,6 +50,8 @@ export class ShaderBuilder {
       console.warn('Modifiers should be an array:', modifiers);
       return pos;
     }
+
+    let combinedScale = 1.0;
 
     for (const modifier of modifiers) {
       switch (modifier.id) {
@@ -61,16 +63,17 @@ export class ShaderBuilder {
           break;
         case 'scale':
           pos = this.applyScaling(pos, modifier.scale);
+          combinedScale *= modifier.scale;
           break;
         default:
           console.warn('Unknown position modifier ID:', modifier.id);
           break;
       }
     }
-    return pos;
+    return { pos, combinedScale };
   }
 
-  applyOperation(sdf, operation) {
+  applyOperation(sdf, operation, combinedScale) {
     if (typeof operation !== 'object' || !operation.id || !this.operations.has(operation.id)) {
       console.warn('Unknown or unsupported operation:', operation);
       return '';
@@ -82,10 +85,13 @@ export class ShaderBuilder {
     if (params)
       opParams = params.join(', ');
 
+    if (combinedScale !== 1.0)
+      sdf = `(${sdf}) * ${combinedScale}`;
+
     return `sdf = ${id}(sdf, ${sdf}, ${opParams});\n`;
   }
 
-  handleShapeOperation(sdfCode, operation, modifiers) {
+  handleShapeOperation(sdfCode, operation, modifiers, combinedScale) {
     if (!Array.isArray(modifiers)) {
       console.warn('SDF modifiers should be an array:', modifiers);
       return this.applyOperation(sdfCode, operation);
@@ -94,7 +100,7 @@ export class ShaderBuilder {
     for (const modifier of modifiers)
       sdfCode = this.applyModifier(sdfCode, modifier);
 
-    return this.applyOperation(sdfCode, operation);
+    return this.applyOperation(sdfCode, operation, combinedScale);
   }
 
   addShape(ShapeClass, operation, shapeModifiers, sdfModifiers, ...params) {
@@ -112,11 +118,11 @@ export class ShaderBuilder {
     if (!this.operations.has(operation.id))
       this.operations.add(operation.id);
 
-    const posCode = this.applyPositionModifiers('input.fragPos', shapeModifiers);
+    const { pos: posCode, combinedScale }  = this.applyPositionModifiers('input.fragPos', shapeModifiers);
     const sdfCode = `${ShapeClass.getSDFunctionName()}(${posCode}, ${ShapeClass.generateSDFCode(...params)})`;
 
     this.shapeOperationsCode += this.handleShapeOperation(
-      sdfCode, operation, sdfModifiers
+      sdfCode, operation, sdfModifiers, combinedScale
     );
 
     return this;

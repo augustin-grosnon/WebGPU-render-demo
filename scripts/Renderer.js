@@ -72,7 +72,12 @@ export class Renderer {
 
     // ? sus
     this.shaderBuilder
-      .addShape(Ellipse, {id: 'opUnion'}, [], [], [0.0, -0.1], [0.6, 1.0])
+      .addShape(
+        Ellipse,
+        {id: 'opUnion'},
+        [],
+        [],
+        [0.0, -0.1], [0.6, 1.0])
       .addShape(
         Rectangle,
         {id: 'opSubtraction'},
@@ -105,7 +110,7 @@ export class Renderer {
           {
             id: 'rotate',
             angle: Math.PI / 6
-          },
+          }
         ],
         [
           {
@@ -299,7 +304,7 @@ export class Renderer {
     this.device.queue.submit([encoder.finish()]);
   }
 
-  updateColorUnifors(colors) {
+  updateColorUniforms(colors) {
     const colorData = new Float32Array(colors.flat());
     this.device.queue.writeBuffer(this.colorUniformBuffer, 0, colorData);
     return this;
