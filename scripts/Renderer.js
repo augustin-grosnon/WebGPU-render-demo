@@ -12,6 +12,7 @@ export class Renderer {
   constructor(device, canvas) {
     this.device = device;
     this.selectedLineIndex = null;
+    this.currentShader = 'default';
 
     this
       .initializeLines()
@@ -54,24 +55,24 @@ export class Renderer {
     return this;
   }
 
-  initializeShaderBuilder() {
-    this.shaderBuilder = new ShaderBuilder();
+  setupDefaultShader() {
+    this.shaderBuilder
+      .addShape(Circle, {id: 'opUnion'}, [], [], [0.0, 0.0], this.circleRadius)
+      .addShapes(
+        Rectangle,
+        {id: 'opSubtraction'},
+        [],
+        [],
+        this.lines.map(
+          ([xCenter, yCenter, width, height]) =>
+          [[xCenter, yCenter], [width, height]]
+        )
+      )
 
-    // ? base version
-    // this.shaderBuilder
-    //   .addShape(Circle, {id: 'opUnion'}, [], [], [0.0, 0.0], this.circleRadius)
-    //   .addShapes(
-    //     Rectangle,
-    //     {id: 'opSubtraction'},
-    //     [],
-    //     [],
-    //     this.lines.map(
-    //       ([xCenter, yCenter, width, height]) =>
-    //       [[xCenter, yCenter], [width, height]]
-    //     )
-    //   )
+    return this;
+  }
 
-    // ? demo - sus
+  setupDemoShader() {
     this.shaderBuilder
       .addShape( // * body
         Ellipse,
@@ -160,6 +161,23 @@ export class Renderer {
     return this;
   }
 
+  initializeShaderBuilder() {
+    this.shaderBuilder = new ShaderBuilder();
+
+    switch (this.currentShader) {
+      case 'default':
+        this.setupDefaultShader();
+        break;
+      case 'demo':
+        this.setupDemoShader();
+        break;
+      default:
+        console.warn(`Invalid shader kind: ${this.currentShader}`);
+    }
+
+    return this;
+  }
+
   updateShader() {
     return this
       .initializeShaderBuilder()
@@ -224,15 +242,16 @@ export class Renderer {
       this.selectedLineIndex = this.getLineIndexFromCoords(y);
     });
 
-    // ? line moving
-    // document.addEventListener('keydown', (event) => {
-    //   if (this.selectedLineIndex === null)
-    //     return;
-    //   this
-    //     .handleLineMovement(event.key)
-    //     .updateShader()
-    //     .render();
-    // });
+    document.addEventListener('keydown', (event) => {
+      if (this.selectedLineIndex === null)
+        return;
+      if (this.currentShader !== 'default')
+        return;
+      this
+        .handleLineMovement(event.key)
+        .updateShader()
+        .render();
+    });
 
     return this;
   }

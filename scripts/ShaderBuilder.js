@@ -109,14 +109,15 @@ export class ShaderBuilder {
 
     const { id, params = [] } = operation;
 
-    let opParams = '${sdf}';
-    if (params)
-      opParams = params.join(', ');
+    let opParams = '';
+    if (params.length) {
+      opParams = ', ' +  params.join(', ');
+    }
 
     if (combinedScale !== 1.0)
       sdf = `(${sdf}) * ${combinedScale}`;
 
-    return `sdf = ${id}(sdf, ${sdf}, ${opParams});\n`;
+    return `sdf = ${id}(sdf, ${sdf}${opParams});\n`;
   }
 
   handleShapeOperation(sdfCode, operation, modifiers, combinedScale) {
@@ -174,22 +175,27 @@ export class ShaderBuilder {
     }
     if (!this.operations.has(operation.id))
       this.operations.add(operation.id);
+
+    const { pos: posCode, combinedScale }  = this.applyPositionModifiers('input.fragPos', shapeModifiers);
+
     this.shapeOperationsCode += paramsArray.reduce((acc, params) => {
       if (!Array.isArray(params)) {
         console.warn('params should be an array:', params);
         return acc;
       }
 
+      const sdfCode = `${ShapeClass.getSDFunctionName()}(${posCode}, ${ShapeClass.generateSDFCode(...params)})`;
+
       return acc + this.handleShapeOperation(
-        ShapeClass.generateSDFCode(...params), operation, shapeModifiers, sdfModifiers
+        sdfCode, operation, sdfModifiers, combinedScale
       );
     }, '');
 
     return this;
   }
 
-  generateShader() {
-    return `
+  generateShader(clean = false) {
+    const shaderCode = `
       struct VertexInput {
         @location(0) pos: vec2f,
       };
@@ -240,6 +246,7 @@ export class ShaderBuilder {
         var sdf = 1e10; // ! using large value to be far by default, could be better
 
         ${this.shapeOperationsCode} // ! loop unrolling might cause issues with high shape amount
+        // ? we could use a recursive approach to do all actions in one single line instead of multiple assignment
 
         if (sdf < 0.0) {
           return getShapeGradient(input.fragPos);
@@ -248,6 +255,37 @@ export class ShaderBuilder {
         }
       }
     `;
+
+    if (!clean)
+      return shaderCode;
+
+    const cleanShaderCode = shaderCode
+      .split('\n')
+      .map(line => line.split('//')[0].trim())
+      .filter(line => line.length > 0)
+      .join('\n');
+
+    const removeMultiLineComments = (code) => {
+      let insideComment = false;
+      return code
+        .split('\n')
+        .filter(line => {
+          if (insideComment) {
+            if (line.includes('*/'))
+              insideComment = false;
+            return false;
+          }
+          if (line.includes('/*')) {
+            insideComment = true;
+            return false;
+          }
+          return true;
+        })
+        .join('\n');
+    };
+    const finalShaderCode = removeMultiLineComments(cleanShaderCode);
+
+    return finalShaderCode;
   }
 
   generateOperationFunctions() {
