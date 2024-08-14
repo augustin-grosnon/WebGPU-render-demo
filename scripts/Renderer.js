@@ -96,6 +96,13 @@ export class Renderer {
         [],
         [0.4, -0.7], 0.19
       )
+      .addShape( // * bottom feet cut
+        Rectangle,
+        {id: 'opSubtraction'},
+        [],
+        [],
+        [0.0, -1.0], [1.0, 0.2]
+      )
       .addShape( // * background
         Circle,
         {id: 'opUnion'},
