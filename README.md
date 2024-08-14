@@ -56,7 +56,7 @@ This project demonstrates rendering a circle with gradient color and a gradient 
 
 ## Usage
 
-- **Colors**: Personalize the render by clicking on the pickers and selecting the appropritae color. You can then update the canvas by clicking on `Update colors`.
+- **Colors**: Personalize the render by clicking on the pickers and selecting the appropriate color. You can then update the canvas by clicking on `Update colors`.
 
 - **Select, move and update lines**: Click on a line to select it. Use the `up` and `down` arrow keys to move the selected line up or down. Use the `left` arrow key to reduce the line width and the `right` arrow key to increase it.
 
